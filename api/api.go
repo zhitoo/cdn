@@ -8,7 +8,6 @@ import (
 	"log"
 	"mime"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -19,10 +18,8 @@ import (
 	"github.com/tdewolff/minify"
 	"github.com/tdewolff/minify/css"
 	"github.com/tdewolff/minify/js"
-	"github.com/zhitoo/go-api/models"
 	"github.com/zhitoo/go-api/requests"
 	"github.com/zhitoo/go-api/storage"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"github.com/gofiber/fiber/v2"
@@ -32,13 +29,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-)
-
-var (
-	db  *gorm.DB
-	rdb *redis.Client
-	ctx = context.Background()
-	m   *minify.M
 )
 
 type ApiError struct {
@@ -87,7 +77,7 @@ func (s *APIServer) Run() {
 
 	// Routes
 	app.Post("/register", s.registerOriginServer)
-	app.Get("/*", serveStatic)
+	app.Get("/*", s.serveStatic)
 
 	// Start server
 	log.Fatal(app.Listen(":8080"))
@@ -104,7 +94,10 @@ func securityHeaders(c *fiber.Ctx) error {
 	return c.Next()
 }
 
-func serveStatic(c *fiber.Ctx) error {
+func (s *APIServer) serveStatic(c *fiber.Ctx) error {
+	rdb := redis.NewClient(&redis.Options{})
+	ctx := context.Background()
+
 	path := filepath.Clean(c.Path())
 	//hostname := c.Hostname()
 
@@ -135,13 +128,11 @@ func serveStatic(c *fiber.Ctx) error {
 	}
 
 	// Retrieve the origin server URL from the database using siteIdentifier
-	var origin models.OriginServer
-	if err := db.Where("site_identifier = ?", siteIdentifier).First(&origin).Error; err != nil {
+	origin, _ := s.storage.GetOriginServerBySiteIdentifier(siteIdentifier)
+	if origin.ID == 0 {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.Status(fiber.StatusNotFound).SendString("Origin server not configured")
 		}
-		log.Printf("Database error: %v", err)
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
 	}
 
 	// Construct the origin URL
@@ -166,13 +157,17 @@ func serveStatic(c *fiber.Ctx) error {
 		for retries < maxRetries {
 			time.Sleep(200 * time.Millisecond)
 			retries++
-			return serveStatic(c)
+			return s.serveStatic(c)
 		}
 		return c.Status(fiber.StatusServiceUnavailable).SendString("Service Unavailable")
 	}
 }
 
 func fetchProcessAndCacheContent(c *fiber.Ctx, originURL, cacheKey, path, widthStr, heightStr string) error {
+
+	rdb := redis.NewClient(&redis.Options{})
+	ctx := context.Background()
+
 	// Fetch from the origin server
 	resp, err := http.Get(originURL)
 	if err != nil || resp.StatusCode != http.StatusOK {
@@ -262,49 +257,22 @@ func resizeImage(imageData []byte, widthStr, heightStr string) ([]byte, error) {
 }
 
 func acquireLock(key string, ttl time.Duration) (bool, error) {
+	rdb := redis.NewClient(&redis.Options{})
+	ctx := context.Background()
 	return rdb.SetNX(ctx, "lock:"+key, 1, ttl).Result()
 }
 
 func releaseLock(key string) {
+	rdb := redis.NewClient(&redis.Options{})
+	ctx := context.Background()
 	rdb.Del(ctx, "lock:"+key)
 }
+
+var m *minify.M
 
 func init() {
 	// Initialize Minifier
 	m = minify.New()
 	m.AddFunc("text/css", css.Minify)
 	m.AddFunc("application/javascript", js.Minify)
-}
-
-func initPostgres() {
-	var err error
-	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Shanghai",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_PORT"),
-	)
-	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatalf("Error connecting to PostgreSQL: %v", err)
-	}
-
-	// Migrate the schema
-	if err := db.AutoMigrate(&models.OriginServer{}); err != nil {
-		log.Fatalf("Error migrating database: %v", err)
-	}
-}
-
-func initRedis() {
-	rdb = redis.NewClient(&redis.Options{
-		Addr:     os.Getenv("REDIS_HOST") + ":" + os.Getenv("REDIS_PORT"),
-		Password: os.Getenv("REDIS_PASSWORD"),
-		DB:       0,
-	})
-	_, err := rdb.Ping(ctx).Result()
-	if err != nil {
-		log.Fatalf("Error connecting to Redis: %v", err)
-	}
 }
