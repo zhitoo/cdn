@@ -2,3 +2,4 @@
 .env
 .idea
 .fetch-client
+.cache

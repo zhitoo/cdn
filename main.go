@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/zhitoo/go-api/api"
 	"github.com/zhitoo/go-api/config"
 	"github.com/zhitoo/go-api/requests"
@@ -14,6 +15,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	server := api.NewAPIServer("localhost:"+config.Envs.Port, storage, requests.NewValidator())
+	rdb := redis.NewClient(&redis.Options{})
+	server := api.NewAPIServer("localhost:"+config.Envs.Port, storage, requests.NewValidator(), rdb)
+	server.StartCacheCleaner()
 	server.Run()
 }
