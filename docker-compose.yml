@@ -1,0 +1,71 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: cdn_app
+    env_file:
+      - .env
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      # Routers
+      - "traefik.http.routers.cdn.rule=Host(`${CDN_DOMAIN}`)"
+      - "traefik.http.routers.cdn.entrypoints=websecure"
+      - "traefik.http.routers.cdn.tls.certresolver=myresolver"
+      # Middleware
+      - "traefik.http.routers.cdn.middlewares=cdn-compress"
+      - "traefik.http.middlewares.cdn-compress.compress=true"
+    expose:
+      - "8080"
+
+  traefik:
+    image: traefik:v2.9
+    container_name: traefik
+    command:
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.address=:80"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=${LETSENCRYPT_EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+    networks:
+      - web
+
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - web
+
+  redis:
+    image: redis:6-alpine
+    container_name: redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - web
+
+networks:
+  web:
+    external: false
+
+volumes:
+  postgres_data:
+  redis_data:
