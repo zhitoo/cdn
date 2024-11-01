@@ -239,7 +239,7 @@ func resizeImage(imageData []byte, widthStr, heightStr string) ([]byte, error) {
 	// Validate dimensions
 	const maxDimension = 2000
 	if width > maxDimension || height > maxDimension {
-		return nil, errors.New("Requested dimensions are too large")
+		return nil, errors.New("requested dimensions are too large")
 	}
 
 	// Set up image processing options

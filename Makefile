@@ -1,6 +1,6 @@
 build:
-	@go build -o bin/gobank
+	@go build -o bin/cdn
 run: build
-	@./bin/gobank
+	@./bin/cdn
 test:
 	@go test -v ./...
