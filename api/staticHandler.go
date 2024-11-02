@@ -22,10 +22,7 @@ import (
 	"github.com/tdewolff/minify"
 	"github.com/tdewolff/minify/css"
 	"github.com/tdewolff/minify/js"
-	"gorm.io/gorm"
 )
-
-
 
 func (s *APIServer) serveStatic(c *fiber.Ctx) error {
 	rdb := s.rdb
@@ -72,9 +69,7 @@ func (s *APIServer) serveStatic(c *fiber.Ctx) error {
 	// Retrieve the origin server URL from the database using siteIdentifier
 	origin, _ := s.storage.GetOriginServerBySiteIdentifier(siteIdentifier)
 	if origin.ID == 0 {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return c.Status(fiber.StatusNotFound).SendString("Origin server not configured")
-		}
+		return c.Status(fiber.StatusNotFound).SendString("Origin server not configured")
 	}
 
 	// Construct the origin URL
