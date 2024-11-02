@@ -86,7 +86,7 @@ func (s *APIServer) serveStatic(c *fiber.Ctx) error {
 		defer releaseLock(rdb, cacheKey)
 
 		// Fetch, process, and cache the content
-		return fetchProcessAndCacheContent(c, originURL, cacheKey, resourcePath, widthStr, heightStr)
+		return fetchProcessAndCacheContent(c, rdb, originURL, cacheKey, resourcePath, widthStr, heightStr)
 	} else {
 		// Wait and retry logic with a maximum retry limit
 		retries := 0
@@ -100,9 +100,7 @@ func (s *APIServer) serveStatic(c *fiber.Ctx) error {
 	}
 }
 
-func fetchProcessAndCacheContent(c *fiber.Ctx, originURL, cacheKey, path, widthStr, heightStr string) error {
-
-	rdb := redis.NewClient(&redis.Options{})
+func fetchProcessAndCacheContent(c *fiber.Ctx, rdb *redis.Client, originURL, cacheKey, path, widthStr, heightStr string) error {
 	ctx := context.Background()
 
 	// Fetch from the origin server
