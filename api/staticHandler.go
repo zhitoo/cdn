@@ -135,10 +135,13 @@ func fetchProcessAndCacheContent(c *fiber.Ctx, rdb *redis.Client, originURL, cac
 		}
 	}
 
+	//get cache expire time
+	cacheExpireTime := getCacheExpireTime(contentType)
+
 	// Decide whether to store content in Redis or on disk
 	if len(fileContent) <= maxRedisValueSize {
 		// Store content directly in Redis
-		if err := rdb.Set(ctx, cacheKey, fileContent, expireTimeInMinute*time.Minute).Err(); err != nil {
+		if err := rdb.Set(ctx, cacheKey, fileContent, cacheExpireTime).Err(); err != nil {
 			log.Printf("Error caching content in Redis: %v", err)
 		}
 		// Serve the content
@@ -151,11 +154,11 @@ func fetchProcessAndCacheContent(c *fiber.Ctx, rdb *redis.Client, originURL, cac
 			return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
 		}
 		// Store file path in Redis
-		if err := rdb.Set(ctx, cacheKey, "file:"+filePath, expireTimeInMinute).Err(); err != nil {
+		if err := rdb.Set(ctx, cacheKey, "file:"+filePath, cacheExpireTime).Err(); err != nil {
 			log.Printf("Error caching file path in Redis: %v", err)
 		}
 		// Add entry to the sorted set with expiration timestamp
-		expiration := time.Now().Add(expireTimeInMinute)
+		expiration := time.Now().Add(cacheExpireTime)
 		if err := rdb.ZAdd(ctx, fileTrackingZSet, &redis.Z{
 			Score:  float64(expiration.Unix()),
 			Member: filePath,
@@ -165,6 +168,14 @@ func fetchProcessAndCacheContent(c *fiber.Ctx, rdb *redis.Client, originURL, cac
 		// Serve the file
 		return c.SendFile(filePath)
 	}
+}
+
+func getCacheExpireTime(contentType string) time.Duration {
+
+	if strings.HasPrefix(contentType, "image/") {
+		return 60 * time.Minute
+	}
+	return 10 * time.Minute
 }
 
 func saveFileToDisk(cacheKey string, content []byte) (string, error) {

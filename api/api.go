@@ -21,7 +21,6 @@ import (
 )
 
 const maxRedisValueSize = 100 * 1024 // 100KB
-const expireTimeInMinute = 10
 const fileTrackingZSet = "file_cache_tracker"
 
 type ApiError struct {
@@ -116,7 +115,7 @@ func cleanUpCache(rdb *redis.Client) {
 }
 
 func (s *APIServer) StartCacheCleaner() {
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(60 * time.Minute)
 	go func() {
 		for range ticker.C {
 			cleanUpCache(s.rdb)
