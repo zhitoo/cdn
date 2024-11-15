@@ -1,4 +1,5 @@
 /bin
+/tmp
 .env
 .idea
 .fetch-client
