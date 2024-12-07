@@ -3,22 +3,25 @@ FROM golang:1.22-alpine AS builder
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
-
-RUN go mod download
-
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o main .
+# RUN go env -w GOPROXY=https://goproxy.cn,direct
+
+#RUN go mod download
+#RUN go mod verify
+RUN go build -o app main.go
 
 # Stage 2: Run the Go application
 FROM alpine:latest
 
+RUN apk add --no-cache build-base gcc git
+RUN apk add --no-cache vips-dev
+
 WORKDIR /root/
 
-COPY --from=builder /app/main .
+COPY --from=builder /app/app .
 COPY --from=builder /app/public ./public
 
 EXPOSE 8080
 
-CMD ["./main"]
+CMD ["./app"]

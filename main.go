@@ -4,14 +4,14 @@ import (
 	"log"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/zhitoo/go-api/api"
-	"github.com/zhitoo/go-api/config"
-	"github.com/zhitoo/go-api/requests"
-	"github.com/zhitoo/go-api/storage"
+	"github.com/zhitoo/cdn/api"
+	"github.com/zhitoo/cdn/config"
+	"github.com/zhitoo/cdn/requests"
+	"github.com/zhitoo/cdn/storage"
 )
 
 func main() {
-	storage, err := storage.NewPostgresStore()
+	storage, err := storage.NewSQLiteStore()
 	if err != nil {
 		log.Fatal(err)
 	}

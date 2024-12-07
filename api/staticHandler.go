@@ -103,6 +103,11 @@ func (s *APIServer) serveStatic(c *fiber.Ctx) error {
 func fetchProcessAndCacheContent(c *fiber.Ctx, rdb *redis.Client, originURL, cacheKey, path, widthStr, heightStr string) error {
 	ctx := context.Background()
 
+	// Check if the URL starts with "https://"
+	if !strings.HasPrefix(originURL, "https://") {
+		originURL = "https://" + originURL
+	}
+
 	// Fetch from the origin server
 	resp, err := http.Get(originURL)
 	if err != nil || resp.StatusCode != http.StatusOK {

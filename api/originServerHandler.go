@@ -4,8 +4,8 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/zhitoo/go-api/models"
-	"github.com/zhitoo/go-api/requests"
+	"github.com/zhitoo/cdn/models"
+	"github.com/zhitoo/cdn/requests"
 )
 
 func (s *APIServer) registerOriginServer(c *fiber.Ctx) error {

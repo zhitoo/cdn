@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/zhitoo/go-api/requests"
-	"github.com/zhitoo/go-api/storage"
+	"github.com/zhitoo/cdn/requests"
+	"github.com/zhitoo/cdn/storage"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"

@@ -5,10 +5,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/zhitoo/go-api/config"
-	"github.com/zhitoo/go-api/models"
-	"github.com/zhitoo/go-api/requests"
-	"github.com/zhitoo/go-api/utils"
+	"github.com/zhitoo/cdn/config"
+	"github.com/zhitoo/cdn/models"
+	"github.com/zhitoo/cdn/requests"
+	"github.com/zhitoo/cdn/utils"
 )
 
 func (s *APIServer) handleLogin(c *fiber.Ctx) error {
