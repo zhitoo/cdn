@@ -29,6 +29,6 @@ make run
 # Run on production
 ```bash
 docker build -t cdn -f Dockerfile .
-docker run -it -p 8800:8800 --network share_network cdn
+docker run -it -p 8800:8080 --network share_network cdn
 ```
 

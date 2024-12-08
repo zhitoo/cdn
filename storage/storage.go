@@ -28,16 +28,15 @@ type SQLiteStorage struct {
 }
 
 func NewSQLiteStore() (*SQLiteStorage, error) {
-	//dsn := "host=" + config.Envs.DBHost + " user=" + config.Envs.DBUser + " password=" + config.Envs.DBPassword + " dbname=" + config.Envs.DBName + " port=" + config.Envs.DBPort + " sslmode=disable"
 	db, err := gorm.Open(sqlite.Open("storage/cdn.db"), &gorm.Config{})
-
-	// Migrate the user schema
-	db.AutoMigrate(&models.User{})
-	db.AutoMigrate(&models.OriginServer{})
 
 	if err != nil {
 		return nil, err
 	}
+
+	// Migrate the user schema
+	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.OriginServer{})
 
 	return &SQLiteStorage{db: db}, nil
 }

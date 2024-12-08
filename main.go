@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/go-redis/redis/v8"
@@ -15,8 +16,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	rdb := redis.NewClient(&redis.Options{})
-	server := api.NewAPIServer("localhost:"+config.Envs.Port, storage, requests.NewValidator(), rdb)
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     config.Envs.RedisHost + ":" + config.Envs.RedisPort,
+		Password: config.Envs.RedisPassword,
+	})
+	// Ping Redis to check if the connection is working
+	_, err = rdb.Ping(context.Background()).Result()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	server := api.NewAPIServer(":"+config.Envs.Port, storage, requests.NewValidator(), rdb)
 	server.StartCacheCleaner()
 	server.Run()
 }

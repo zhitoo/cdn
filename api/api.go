@@ -45,7 +45,7 @@ func NewAPIServer(listenAddr string, storage storage.Storage, validator *request
 
 func (s *APIServer) Run() {
 	app := fiber.New(fiber.Config{
-		Prefork: true,
+		Prefork: false,
 	})
 
 	app.Use(func(c *fiber.Ctx) error {
@@ -72,7 +72,7 @@ func (s *APIServer) Run() {
 	// Routes
 	app.Post("/register", s.registerOriginServer)
 	app.Get("/*", s.serveStatic)
-	app.Listen(s.listenAddr)
+	log.Fatal(app.Listen(s.listenAddr))
 }
 
 func securityHeaders(c *fiber.Ctx) error {

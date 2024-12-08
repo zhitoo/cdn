@@ -1,27 +1,23 @@
 # Stage 1: Build the Go application
-FROM golang:1.22-alpine AS builder
+FROM docker.arvancloud.ir/golang:1.22-alpine
 
 WORKDIR /app
 
 COPY . .
 
-# RUN go env -w GOPROXY=https://goproxy.cn,direct
+RUN go env -w GOPROXY=https://goproxy.cn,direct
+
+RUN apk add build-base gcc git
+RUN apk add vips-dev
 
 #RUN go mod download
-#RUN go mod verify
+RUN go mod tidy
 RUN go build -o app main.go
 
-# Stage 2: Run the Go application
-FROM alpine:latest
 
-RUN apk add --no-cache build-base gcc git
-RUN apk add --no-cache vips-dev
+RUN apk add sqlite
 
-WORKDIR /root/
-
-COPY --from=builder /app/app .
-COPY --from=builder /app/public ./public
 
 EXPOSE 8080
 
-CMD ["./app"]
+CMD ["sh", "-c", "./app"]
