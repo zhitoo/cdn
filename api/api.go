@@ -45,7 +45,7 @@ func NewAPIServer(listenAddr string, storage storage.Storage, validator *request
 
 func (s *APIServer) Run() {
 	app := fiber.New(fiber.Config{
-		Prefork: false,
+		Prefork: true,
 	})
 
 	app.Use(func(c *fiber.Ctx) error {

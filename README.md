@@ -22,13 +22,16 @@ apk add --no-cache build-base gcc git
 # Install libvips dependencies
 apk add --no-cache vips-dev
 ```
+
 # Run app
+
 ```bash
 make run
 ```
+
 # Run on production
+
 ```bash
 docker build -t cdn -f Dockerfile .
-docker run -it -p 8800:8080 --network share_network cdn
+docker run -d -p 8800:8080  --network share_network --pid=host --name cdn cdn
 ```
-
