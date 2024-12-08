@@ -33,5 +33,5 @@ make run
 
 ```bash
 docker build -t cdn -f Dockerfile .
-docker run -d -p 8800:8080  --network share_network --pid=host --name cdn cdn
+docker run -d -p 8800:8080  --network share_network -v cdn-db-data:/storage/cdn.db --pid=host --name cdn cdn
 ```
