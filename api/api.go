@@ -66,6 +66,10 @@ func (s *APIServer) Run() {
 	app.Use(limiter.New(limiter.Config{
 		Max:        100,
 		Expiration: 1 * time.Minute,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			// Use the X-Forwarded-For header to get the client's IP address
+			return c.Get("X-Forwarded-For")
+		},
 	}))
 	app.Use(securityHeaders)
 

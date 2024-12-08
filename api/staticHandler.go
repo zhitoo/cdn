@@ -180,7 +180,7 @@ func getCacheExpireTime(contentType string) time.Duration {
 	if strings.HasPrefix(contentType, "image/") {
 		return 60 * time.Minute
 	}
-	return 10 * time.Minute
+	return 60 * time.Minute
 }
 
 func saveFileToDisk(cacheKey string, content []byte) (string, error) {
