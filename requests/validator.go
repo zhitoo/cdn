@@ -21,13 +21,13 @@ func NewValidator() *Validator {
 	NewValidator := &Validator{
 		validator: validate,
 	}
-	NewValidator.validator.RegisterValidation("teener", func(fl validator.FieldLevel) bool {
-		return fl.Field().Uint() >= 12 && fl.Field().Uint() <= 18
-	})
+	// NewValidator.validator.RegisterValidation("teener", func(fl validator.FieldLevel) bool {
+	// 	return fl.Field().Uint() >= 12 && fl.Field().Uint() <= 18
+	// })
 
-	NewValidator.validator.RegisterValidation("mobile", func(fl validator.FieldLevel) bool {
-		return len(fl.Field().String()) == 11
-	})
+	// NewValidator.validator.RegisterValidation("mobile", func(fl validator.FieldLevel) bool {
+	// 	return len(fl.Field().String()) == 11
+	// })
 	//you can add more custom validator here!!
 	return NewValidator
 }
